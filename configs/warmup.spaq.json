@@ -1,0 +1,23 @@
+{
+  "model_id": "qwen3.5-2b-4bit-pointer-warmup",
+  "display_name": "Qwen3.5-2B 4-bit, pointer head only",
+  "family": "qwen35",
+  "base_model": "Qwen/Qwen3.5-2B",
+  "min_pixels": 3136,
+  "max_pixels": 65536,
+  "oom_max_pixels": 3136,
+  "attn_implementation": "eager",
+  "torch_dtype": "float16",
+  "load_in_4bit": true,
+  "bnb_4bit_quant_type": "nf4",
+  "bnb_4bit_use_double_quant": true,
+  "enable_thinking": false,
+  "week0": "configs/week0.v0.1.json",
+  "dataset": "spaq",
+  "n_items": 8,
+  "epochs": 40,
+  "head_lr": 0.0002,
+  "projection_dim": 256,
+  "seed": 42,
+  "note": "Valen warmup trains only the decision head. This machine has 4GB, so the frozen Qwen3.5-2B forward is 4-bit and the head is fit on cached hidden states. Valen's published bf16 2B warmup does not fit here."
+}

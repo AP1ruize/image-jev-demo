@@ -1,0 +1,57 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.coverage
+dist/
+build/
+.cache/
+*.egg-info/
+
+# Machine-local paths (dataset archives, GPU id). Never commit.
+configs/local.json
+
+# Dedicated local dataset tree (images, archives, catalogs). Keep README.
+datasets/**
+!datasets/README.md
+
+# Local datasets, derived assets, and indices. Keep README and placeholders.
+data/**
+!data/README.md
+!data/raw/
+!data/interim/
+!data/processed/
+!data/exports/
+!data/manifests/
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!data/exports/.gitkeep
+!data/manifests/.gitkeep
+
+# Local model checkouts and weights.
+models/**
+!models/.gitkeep
+
+# Training, eval, and other generated artifacts.
+outputs/**
+!outputs/.gitkeep
+
+# Safety net for weights, embeddings, and search indices.
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.gguf
+*.ggml
+*.onnx
+*.h5
+*.npz
+*.npy
+*.faiss
+*.idx
+*.arrow
+*.parquet
+*.feather

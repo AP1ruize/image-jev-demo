@@ -1,0 +1,43 @@
+{
+  "release_id": "week0-iqa-smoke",
+  "sampling_seed": "image-jev-week0-smoke",
+  "prompt_version": "week0-iqa-v0.1",
+  "purpose": "local_smoke",
+  "benchmark_samples": {
+    "spaq": 4,
+    "koniq10k": 4
+  },
+  "split": {
+    "train": 0.70,
+    "validation": 0.15
+  },
+  "datasets": {
+    "spaq": {
+      "dimension": "technical_quality",
+      "scale": [0, 100],
+      "gold_key": "MOS",
+      "bin_start": 0,
+      "bin_stop": 100,
+      "bin_step": 10
+    },
+    "koniq10k": {
+      "dimension": "technical_quality",
+      "scale": [1, 5],
+      "gold_key": "MOS",
+      "bin_start": 1,
+      "bin_stop": 5,
+      "bin_step": 1
+    }
+  },
+  "prompts": {
+    "spaq": {
+      "generate": "Estimate the overall perceptual quality of this smartphone photograph on the SPAQ MOS scale from 0 to 100. This is technical/perceptual quality, not aesthetic appeal. Output JSON only: {\"value\": number}.",
+      "logits": "Estimate the overall perceptual quality of this smartphone photograph on the SPAQ MOS scale from 0 to 100. This is technical/perceptual quality, not aesthetic appeal.\nChoose the closest score:"
+    },
+    "koniq10k": {
+      "generate": "Estimate the perceptual image quality of this photograph on the KonIQ-10k MOS scale from 1 to 5. This is technical/perceptual quality, not photographic aesthetics. Output JSON only: {\"value\": number}.",
+      "logits": "Estimate the perceptual image quality of this photograph on the KonIQ-10k MOS scale from 1 to 5. This is technical/perceptual quality, not photographic aesthetics.\nChoose the closest score:"
+    }
+  },
+  "spaq_attributes": ["Brightness", "Colorfulness", "Contrast", "Noisiness", "Sharpness"]
+}

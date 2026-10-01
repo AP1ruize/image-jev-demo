@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://image-jev.local/schemas/benchmark-item.schema.json",
+  "title": "ImageJev Week 0 benchmark item",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["item_id", "source_dataset", "source_id", "split", "group_id", "task", "assets", "gold"],
+  "properties": {
+    "item_id": {"type": "string", "minLength": 3},
+    "source_dataset": {"enum": ["spaq", "koniq10k"]},
+    "source_id": {"type": "string", "minLength": 1},
+    "split": {"enum": ["test"]},
+    "group_id": {"type": "string", "minLength": 1},
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "type", "prompt_id", "scale", "gold_key"],
+      "properties": {
+        "dimension": {"const": "technical_quality"},
+        "type": {"const": "continuous"},
+        "prompt_id": {"type": "string"},
+        "scale": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {"type": "number"}
+        },
+        "gold_key": {"type": "string"}
+      }
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["asset_id", "path", "sha256"],
+        "properties": {
+          "asset_id": {"type": "string"},
+          "path": {"type": "string"},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    },
+    "gold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "value"],
+      "properties": {
+        "origin": {"const": "source_human"},
+        "value": {"type": "number"},
+        "raw": {"type": "object"}
+      }
+    }
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "registry_version": "0.1",
+  "verified_at": "2026-09-20",
+  "policy": {
+    "default_import": false,
+    "code_license_is_not_data_license": true,
+    "benchmark_test_to_training": "forbidden",
+    "unknown_or_conflicting_license": "research_only"
+  },
+  "datasets": [
+    {
+      "id": "spaq",
+      "name": "Smartphone Photography Attribute and Quality Database",
+      "publication": "CVPR 2020",
+      "kind": ["benchmark", "image_quality"],
+      "facts": {
+        "images": 11125,
+        "smartphones": 66,
+        "attributes": ["MOS", "Brightness", "Colorfulness", "Contrast", "Noisiness", "Sharpness"]
+      },
+      "role": "technical_quality",
+      "official": {
+        "paper": "https://openaccess.thecvf.com/content_CVPR_2020/papers/Fang_Perceptual_Quality_Assessment_of_Smartphone_Photography_CVPR_2020_paper.pdf",
+        "repository": "https://github.com/h4nwei/SPAQ"
+      },
+      "access": "Official repository lists Google Drive and Baidu releases. Manual download.",
+      "license": {
+        "expression": "Package Readme permits educational and research use; commercial software or hardware use requires author permission.",
+        "status": "restrictive_package_terms",
+        "commercial_training": "permission_required"
+      },
+      "notes": "Join images to MOS and the five attribute columns by Image name. Do not treat MOS as aesthetic beauty."
+    },
+    {
+      "id": "koniq10k",
+      "name": "KonIQ-10k",
+      "publication": "IEEE TIP 2020",
+      "kind": ["benchmark", "image_quality"],
+      "facts": {
+        "scored_images": 10073,
+        "zip_jpeg_count": 10373,
+        "unscored_extra_images": 300
+      },
+      "role": "technical_quality",
+      "official": {
+        "paper": "https://arxiv.org/abs/1910.06180",
+        "dataset": "https://database.mmsp-kn.de/",
+        "images_zip": "https://datasets.vqa.mmsp-kn.de/archives/koniq10k_1024x768.zip",
+        "scores_zip": "https://datasets.vqa.mmsp-kn.de/archives/koniq10k_scores_and_distributions.zip"
+      },
+      "access": "Official portal direct ZIP downloads.",
+      "license": {
+        "expression": "Portal terms require review; treat as research-community data until a commercial grant is confirmed.",
+        "status": "review_required",
+        "commercial_training": "unknown"
+      },
+      "notes": "The 1024x768 ZIP contains 10,373 JPEGs; the score CSV has 10,073 unique image_name values. Always inner-join on the CSV and drop the 300 unlabeled files."
+    },
+    {
+      "id": "koniq++",
+      "name": "KonIQ++",
+      "publication": "BMVC 2021",
+      "kind": ["benchmark", "image_quality", "defect_labels"],
+      "facts": {
+        "images": 10073,
+        "defect_categories": ["artifacts", "blur", "contrast", "colors", "other"]
+      },
+      "role": "technical_quality",
+      "official": {
+        "paper": "https://database.mmsp-kn.de/koniq-image-defects-database.html",
+        "labels_csv": "https://datasets.vqa.mmsp-kn.de/archives/koniq++/koniq++database_distributions.csv"
+      },
+      "access": "CSV is a direct download; images are the KonIQ-10k set.",
+      "license": {
+        "expression": "Same research-community terms as KonIQ-10k images; CSV from MMSP Konstanz portal.",
+        "status": "review_required",
+        "commercial_training": "unknown"
+      },
+      "notes": "Join filename to KonIQ-10k JPEGs. Do not invent a separate image tree."
+    },
+    {
+      "id": "cid2013",
+      "name": "CID2013 Camera Image Database",
+      "publication": "IEEE TIP 2015",
+      "kind": ["benchmark", "image_quality"],
+      "facts": {
+        "images": 474,
+        "devices": 79,
+        "image_sets": 6
+      },
+      "role": "technical_quality",
+      "official": {
+        "paper": "https://doi.org/10.1109/TIP.2014.2378061",
+        "dataset": "https://zenodo.org/records/2647033"
+      },
+      "access": "Zenodo CID2013.7z, no form.",
+      "license": {
+        "expression": "Zenodo record; follow CID2013 copyright notice in the package and paper.",
+        "status": "review_required",
+        "commercial_training": "unknown"
+      },
+      "notes": "Use CID2013 MOS sheet Source_ID joined to JPEG stems. Prefer realigned MOS when comparing across image sets."
+    },
+    {
+      "id": "uhd-iqa",
+      "name": "UHD-IQA Benchmark Database",
+      "publication": "arXiv 2024",
+      "kind": ["benchmark", "image_quality"],
+      "facts": {
+        "images": 6073,
+        "width_px": 3840,
+        "official_source_sets": {"training": 4269, "validation": 904, "test": 900}
+      },
+      "role": "technical_quality",
+      "official": {
+        "paper": "https://arxiv.org/abs/2406.17472",
+        "dataset": "https://database.mmsp-kn.de/uhd-iqa-benchmark-database.html",
+        "images_zip": "https://datasets.vqa.mmsp-kn.de/archives/UHD-IQA/UHD-IQA-database.zip"
+      },
+      "access": "Direct ZIP from MMSP Konstanz. Images CC0 (Pixabay pre-2019).",
+      "license": {
+        "expression": "Images CC0; ratings provided for the research community.",
+        "status": "verified_images_cc0",
+        "commercial_training": "images_cc0_ratings_review"
+      },
+      "notes": "Official training/validation/test columns are source provenance, not an Image-JEV freeze. Do not copy onto D: unless free space exceeds the unpacked tree (~10 GiB)."
+    }
+  ]
+}

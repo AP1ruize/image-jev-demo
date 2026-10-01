@@ -1,0 +1,20 @@
+{
+  "model_id": "qwen3-vl-2b-instruct",
+  "display_name": "Qwen3-VL-2B-Instruct",
+  "family": "qwen3vl",
+  "base_model": "Qwen/Qwen3-VL-2B-Instruct",
+  "min_pixels": 3136,
+  "max_pixels": 262144,
+  "attn_implementation": "eager",
+  "torch_dtype": "float16",
+  "load_in_4bit": true,
+  "bnb_4bit_quant_type": "nf4",
+  "bnb_4bit_use_double_quant": true,
+  "enable_thinking": false,
+  "evaluation": {
+    "max_new_tokens_generate": 32,
+    "max_new_tokens_grammar": 16,
+    "temperature": 0.0,
+    "seed": 42
+  }
+}

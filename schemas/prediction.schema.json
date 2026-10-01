@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://image-jev.local/schemas/prediction.schema.json",
+  "title": "ImageJev Week 0 prediction record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["item_id", "mode", "prediction", "error", "schema_valid", "latency_ms"],
+  "properties": {
+    "item_id": {"type": "string"},
+    "mode": {"enum": ["generate", "grammar", "logits"]},
+    "prediction": {"type": ["number", "null"]},
+    "error": {"type": ["string", "null"]},
+    "schema_valid": {"type": "boolean"},
+    "raw_response": {"type": ["string", "null"]},
+    "latency_ms": {"type": ["number", "null"]},
+    "n_new_tokens": {"type": ["integer", "null"]},
+    "n_forward_passes": {"type": ["integer", "null"]},
+    "bin_label": {"type": ["string", "null"]},
+    "bin_probability": {"type": ["number", "null"]},
+    "probabilities": {
+      "type": ["object", "null"],
+      "additionalProperties": {"type": "number"}
+    }
+  }
+}
