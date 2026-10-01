@@ -1,0 +1,37 @@
+{
+  "n_expected": 8,
+  "n_responses": 2,
+  "errors": {
+    "missing_response": 6
+  },
+  "by_source": {
+    "koniq10k": {
+      "task_type": "continuous",
+      "n_total": 4,
+      "n_valid": 2,
+      "coverage": 0.5,
+      "schema_valid": 0.5,
+      "n_groups": 4,
+      "median_latency_ms": 1143.795,
+      "primary_metric_ci95_group_bootstrap": null,
+      "spearman_rho": 1.0,
+      "pearson_r": 0.9999999999999998,
+      "mae": 0.4737219734464133
+    },
+    "spaq": {
+      "task_type": "continuous",
+      "n_total": 4,
+      "n_valid": 0,
+      "coverage": 0.0,
+      "schema_valid": 0.0,
+      "n_groups": 4,
+      "median_latency_ms": null,
+      "primary_metric_ci95_group_bootstrap": null,
+      "spearman_rho": null,
+      "pearson_r": null,
+      "mae": null
+    }
+  },
+  "interpretation": "Do not mix SPAQ and KonIQ MOS. Compare paired runs on identical items; report coverage and schema_valid beside Spearman/Pearson/MAE.",
+  "release": "week0-iqa-smoke"
+}

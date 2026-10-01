@@ -1,0 +1,14 @@
+{
+  "release_id": "week0-iqa-smoke",
+  "release_sha256": "c1578ab46aade5f3f180b16240f9a3208cb8febf47761186e2021728a17bad43",
+  "run_items_sha256": "25d321327f99c0b2a977bdfb4e0d0b19d107d4bd2cb22671c8d1c38b134995df",
+  "model_id": "qwen3-vl-2b-instruct",
+  "display_name": "Qwen3-VL-2B-Instruct",
+  "family": "qwen3vl",
+  "base_model": "Qwen/Qwen3-VL-2B-Instruct",
+  "mode": "logits",
+  "week0_config": "configs/week0.smoke.json",
+  "model_config": "configs/models.qwen3vl2b.json",
+  "started_utc_epoch": 1789876894.685185,
+  "items_requested": 2
+}

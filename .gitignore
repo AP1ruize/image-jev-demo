@@ -28,6 +28,7 @@ data/**
 !data/interim/.gitkeep
 !data/processed/.gitkeep
 !data/exports/.gitkeep
+!data/exports/**
 !data/manifests/.gitkeep
 
 # Local model checkouts and weights.
@@ -35,8 +36,16 @@ models/**
 !models/.gitkeep
 
 # Training, eval, and other generated artifacts.
+# Reports and run records are committed. Feature caches and weights stay ignored.
 outputs/**
 !outputs/.gitkeep
+!outputs/reports/
+!outputs/reports/**
+!outputs/runs/
+!outputs/runs/**
+!outputs/warmup/
+!outputs/warmup/*.json
+!outputs/warmup/*.md
 
 # Safety net for weights, embeddings, and search indices.
 *.safetensors

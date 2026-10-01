@@ -1,0 +1,2 @@
+{"mode":"generate","prediction":4.0,"error":null,"schema_valid":true,"raw_response":"```json\n{\"value\": 4}\n```","latency_ms":1615.88,"n_new_tokens":11,"n_forward_passes":11,"bin_label":null,"bin_probability":null,"probabilities":null,"item_id":"koniq10k:6915781600.jpg:MOS"}
+{"mode":"generate","prediction":3.0,"error":null,"schema_valid":true,"raw_response":"```json\n{\"value\": 3}\n```","latency_ms":1317.76,"n_new_tokens":11,"n_forward_passes":11,"bin_label":null,"bin_probability":null,"probabilities":null,"item_id":"koniq10k:7272599674.jpg:MOS"}

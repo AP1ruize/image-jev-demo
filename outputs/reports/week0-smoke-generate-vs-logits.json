@@ -1,0 +1,21 @@
+{
+  "n_expected": 2,
+  "by_source": {
+    "koniq10k": {
+      "primary_metric": "spearman_rho",
+      "n_total": 2,
+      "n_paired_valid": 2,
+      "left_schema_valid": 1.0,
+      "right_schema_valid": 1.0,
+      "left_median_latency_ms": 1466.8200000000002,
+      "right_median_latency_ms": 1143.795,
+      "latency_ratio_right_over_left": 0.779778704953573,
+      "left_spearman_rho": 1.0,
+      "right_spearman_rho": 1.0,
+      "delta_right_minus_left": 0.0,
+      "ci95": null
+    }
+  },
+  "left": "outputs\\runs\\_smokes\\qwen3vl2b-generate-smoke-2.jsonl",
+  "right": "outputs\\runs\\_smokes\\qwen3vl2b-logits-smoke-2.jsonl"
+}

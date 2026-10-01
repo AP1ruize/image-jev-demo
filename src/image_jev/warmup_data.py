@@ -27,6 +27,44 @@ def score_user_text(instruction: str, labels: list[float]) -> str:
     return "\n".join(lines)
 
 
+def select_split_records(
+    records: list[dict[str, Any]],
+    *,
+    dataset: str,
+    seed: str,
+    train: float,
+    validation: float,
+    split: str,
+    n: int | None = None,
+    exclude_source_ids: Iterable[str] = (),
+) -> list[dict[str, Any]]:
+    if split not in {"train", "validation"}:
+        raise ValueError("selection for training refuses the test split")
+    blocked = set(exclude_source_ids)
+    pool = []
+    for record in records:
+        if record.get("source_dataset") != dataset:
+            continue
+        if record.get("source_id") in blocked:
+            continue
+        record_split = split_name(record["group_id"], seed=seed, train=train, validation=validation)
+        if record_split != split:
+            continue
+        pool.append(record)
+    pool.sort(key=lambda record: rank_key(dataset, record["source_id"], seed))
+    if n is None:
+        chosen = pool
+    else:
+        if len(pool) < n:
+            raise ValueError(f"need {n} {split} records for {dataset}, found {len(pool)}")
+        chosen = pool[:n]
+    for record in chosen:
+        record_split = split_name(record["group_id"], seed=seed, train=train, validation=validation)
+        if record_split != split:
+            raise RuntimeError(f"refusing {record_split} record {record['source_id']}")
+    return chosen
+
+
 def select_train_records(
     records: list[dict[str, Any]],
     *,
@@ -37,26 +75,16 @@ def select_train_records(
     n: int,
     exclude_source_ids: Iterable[str] = (),
 ) -> list[dict[str, Any]]:
-    blocked = set(exclude_source_ids)
-    pool = []
-    for record in records:
-        if record.get("source_dataset") != dataset:
-            continue
-        if record.get("source_id") in blocked:
-            continue
-        split = split_name(record["group_id"], seed=seed, train=train, validation=validation)
-        if split != "train":
-            continue
-        pool.append(record)
-    pool.sort(key=lambda record: rank_key(dataset, record["source_id"], seed))
-    if len(pool) < n:
-        raise ValueError(f"need {n} train records for {dataset}, found {len(pool)}")
-    chosen = pool[:n]
-    for record in chosen:
-        split = split_name(record["group_id"], seed=seed, train=train, validation=validation)
-        if split != "train":
-            raise RuntimeError(f"refusing non-train record {record['source_id']}")
-    return chosen
+    return select_split_records(
+        records,
+        dataset=dataset,
+        seed=seed,
+        train=train,
+        validation=validation,
+        split="train",
+        n=n,
+        exclude_source_ids=exclude_source_ids,
+    )
 
 
 def score_record(record: dict[str, Any], *, instruction: str, labels: list[float], question_id: str = "mos") -> dict:

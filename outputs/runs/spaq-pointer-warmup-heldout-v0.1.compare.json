@@ -1,0 +1,22 @@
+{
+  "n_expected": 120,
+  "by_source": {
+    "spaq": {
+      "primary_metric": "spearman_rho",
+      "n_total": 120,
+      "n_paired_valid": 120,
+      "left_schema_valid": 1.0,
+      "right_schema_valid": 1.0,
+      "left_median_latency_ms": 243.815,
+      "right_median_latency_ms": 196.23,
+      "latency_ratio_right_over_left": 0.8048315321042594,
+      "left_spearman_rho": 0.5484907675285464,
+      "right_spearman_rho": 0.8507504926920747,
+      "delta_right_minus_left": 0.3022597251635283,
+      "ci95": [
+        0.17093951783299177,
+        0.456931687757417
+      ]
+    }
+  }
+}
