@@ -37,9 +37,12 @@ def select_split_records(
     split: str,
     n: int | None = None,
     exclude_source_ids: Iterable[str] = (),
+    allow_test: bool = False,
 ) -> list[dict[str, Any]]:
-    if split not in {"train", "validation"}:
+    if split == "test" and not allow_test:
         raise ValueError("selection for training refuses the test split")
+    if split not in {"train", "validation", "test"}:
+        raise ValueError(f"unknown split: {split}")
     blocked = set(exclude_source_ids)
     pool = []
     for record in records:

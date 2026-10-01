@@ -176,11 +176,20 @@ def _fit(train_features, val_features, *, hidden_size: int, projection: int, epo
     history = [{"epoch": -1, "train_loss": train_start, "val_loss": val_start}]
     for epoch in range(epochs):
         optimizer.zero_grad()
-        loss = _mean_loss(head_q, head_k, scale, train_features)
-        loss.backward()
+        # Backward one photo at a time so the full training split does not keep every graph.
+        train_total = 0.0
+        weight = 1.0 / len(train_features)
+        for item in train_features:
+            query = head_q(item["h_decide"])
+            keys = head_k(item["h_options"])
+            logits = (keys * query).sum(dim=-1) * scale
+            log_probs = torch.log_softmax(logits, dim=0)
+            loss = -(item["target"] * log_probs).sum()
+            (loss * weight).backward()
+            train_total += float(loss.detach())
         optimizer.step()
         with torch.no_grad():
-            train_loss = float(loss.detach())
+            train_loss = train_total / len(train_features)
             val_loss = float(_mean_loss(head_q, head_k, scale, val_features))
         history.append({"epoch": epoch, "train_loss": train_loss, "val_loss": val_loss})
         if val_loss < best["val_loss"]:
@@ -240,14 +249,22 @@ def _load_feature(path: Path) -> dict:
     return torch.load(path, map_location="cpu", weights_only=False)
 
 
-def _ensure_features(model, processor, records, labels, prompt, device, cache_root: Path, split: str) -> list[dict]:
+def _ensure_features(model, processor, records, labels, prompt, device, cache_root: Path, split: str, *, measure: bool = False):
     import torch
 
+    from image_jev.resources import cuda_snapshot, latency_summary, reset_cuda_peak
+
     features = []
+    latencies = []
+    measured_forwards = 0
+    if measure:
+        reset_cuda_peak()
     for index, record in enumerate(records, start=1):
         path = _cache_path(cache_root, split, record["source_id"])
         if path.is_file():
-            features.append(_load_feature(path))
+            feature = _load_feature(path)
+            features.append(feature)
+            latencies.append(float(feature["latency_ms"]))
             continue
         if model is None:
             raise RuntimeError(f"missing cache {path} and the model is not loaded")
@@ -255,8 +272,15 @@ def _ensure_features(model, processor, records, labels, prompt, device, cache_ro
         path.parent.mkdir(parents=True, exist_ok=True)
         torch.save(feature, path)
         features.append(feature)
+        latencies.append(float(feature["latency_ms"]))
+        measured_forwards += 1
         print(f"cached {split} {index}/{len(records)} {record['source_id']} {feature['latency_ms']} ms", flush=True)
-    return features
+    resources = None
+    if measure:
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+        resources = {"split": split, "measured_forwards": measured_forwards, **latency_summary(latencies), **cuda_snapshot()}
+    return features, resources
 
 
 def main() -> None:
@@ -276,32 +300,54 @@ def main() -> None:
         "train": float(week0["split"]["train"]),
         "validation": float(week0["split"]["validation"]),
     }
-    train_raw = select_split_records(raw, split="train", n=int(config["n_train"]), **split_kwargs)
-    val_raw = select_split_records(raw, split="validation", n=int(config["n_validation"]), **split_kwargs)
+    def count(value):
+        return None if value is None else int(value)
+
+    scored_split = str(config.get("scored_split") or "validation")
+    run_logits = bool(config.get("run_logits", scored_split == "validation"))
+    train_raw = select_split_records(raw, split="train", n=count(config.get("n_train")), **split_kwargs)
+    val_raw = select_split_records(raw, split="validation", n=count(config.get("n_validation")), **split_kwargs)
+    test_raw = []
+    if scored_split == "test":
+        test_raw = select_split_records(raw, split="test", n=count(config.get("n_test")), allow_test=True, **split_kwargs)
     train_ids = {record["source_id"] for record in train_raw}
     val_ids = {record["source_id"] for record in val_raw}
-    if train_ids & val_ids:
-        raise SystemExit("train and validation selections overlap")
+    test_ids = {record["source_id"] for record in test_raw}
+    if train_ids & val_ids or train_ids & test_ids or val_ids & test_ids:
+        raise SystemExit("train, validation, and test selections overlap")
     train_records = [score_record(record, instruction=instruction, labels=labels) for record in train_raw]
     val_records = [score_record(record, instruction=instruction, labels=labels) for record in val_raw]
+    test_records = [score_record(record, instruction=instruction, labels=labels) for record in test_raw]
+    scored_records = test_records if scored_split == "test" else val_records
     export = ROOT / "data/exports" / config["release_id"]
     write_jsonl(export / "train.jsonl", train_records)
     write_jsonl(export / "validation.jsonl", val_records)
+    if test_records:
+        write_jsonl(export / "test.jsonl", test_records)
+    print(
+        f"splits train={len(train_records)} validation={len(val_records)} test={len(test_records)} scored={scored_split}",
+        flush=True,
+    )
 
     release = config["release_id"]
     run_dir = ROOT / "outputs/runs"
     cache_root = ROOT / "outputs/warmup" / release / "features"
     logits_path = run_dir / f"{release}-logits.jsonl"
     logits_done = _load_map(logits_path)
+    feature_groups = [("train", train_records), ("validation", val_records)]
+    if test_records:
+        feature_groups.append(("test", test_records))
     missing_features = []
-    for split, records in (("train", train_records), ("validation", val_records)):
+    for split, records in feature_groups:
         for record in records:
             if not _cache_path(cache_root, split, record["source_id"]).is_file():
                 missing_features.append((split, record["source_id"]))
-    missing_logits = [record for record in val_records if _item_id(record["source_id"]) not in logits_done]
+    missing_logits = []
+    if run_logits:
+        missing_logits = [record for record in scored_records if _item_id(record["source_id"]) not in logits_done]
     print(
-        f"missing pointer caches {len(missing_features)} / {len(train_records) + len(val_records)}; "
-        f"missing logits {len(missing_logits)} / {len(val_records)}",
+        f"missing pointer caches {len(missing_features)} / {sum(len(records) for _, records in feature_groups)}; "
+        f"missing logits {len(missing_logits)} / {len(scored_records) if run_logits else 0}",
         flush=True,
     )
 
@@ -314,6 +360,7 @@ def main() -> None:
     model = None
     processor = None
     used_pixels = int(config["max_pixels"])
+    inference_resources = {}
     if missing_features or missing_logits:
         if not torch.cuda.is_available():
             raise SystemExit("CUDA is not available.")
@@ -326,20 +373,29 @@ def main() -> None:
             print(f"out of memory, retrying at max_pixels={used_pixels}", flush=True)
             model, processor = load_model(profile)
         device = torch.device("cuda:0")
+        from image_jev.resources import cuda_snapshot
+
+        resident_after_load = cuda_snapshot()
+        inference_resources = {"resident_after_load": resident_after_load}
         try:
             _ensure_features(model, processor, train_records, labels, pointer_prompt, device, cache_root, "train")
             _ensure_features(model, processor, val_records, labels, pointer_prompt, device, cache_root, "validation")
-            for index, record in enumerate(val_records, start=1):
-                item_id = _item_id(record["source_id"])
-                if item_id in logits_done:
-                    continue
-                with Image.open(record["image"]) as image:
-                    rgb = image.convert("RGB")
-                result = score_logits(model, processor, rgb, letter_prompt, labels, enable_thinking=False)
-                result["item_id"] = item_id
-                _append(logits_path, result)
-                logits_done[item_id] = result
-                print(f"logits {index}/{len(val_records)} {record['source_id']} {result['latency_ms']} ms", flush=True)
+            _scored_features, scored_resources = _ensure_features(
+                model, processor, scored_records, labels, pointer_prompt, device, cache_root, scored_split, measure=True
+            )
+            inference_resources["scored_forward"] = scored_resources
+            if run_logits:
+                for index, record in enumerate(scored_records, start=1):
+                    item_id = _item_id(record["source_id"])
+                    if item_id in logits_done:
+                        continue
+                    with Image.open(record["image"]) as image:
+                        rgb = image.convert("RGB")
+                    result = score_logits(model, processor, rgb, letter_prompt, labels, enable_thinking=False)
+                    result["item_id"] = item_id
+                    _append(logits_path, result)
+                    logits_done[item_id] = result
+                    print(f"logits {index}/{len(scored_records)} {record['source_id']} {result['latency_ms']} ms", flush=True)
         except torch.OutOfMemoryError:
             raise SystemExit(
                 f"out of memory at max_pixels={used_pixels}. Delete partial files under {cache_root} "
@@ -360,21 +416,30 @@ def main() -> None:
         lr=float(config["head_lr"]),
         seed=int(config["seed"]),
     )
-    pointer_val = _predict(head, val_features, labels)
+    scored_features = [_load_feature(_cache_path(cache_root, scored_split, record["source_id"])) for record in scored_records]
+    pointer_scored = _predict(head, scored_features, labels)
     pointer_train = _predict(head, train_features, labels)
-    gold_val = [_gold(record) for record in val_records]
+    gold_scored = [_gold(record) for record in scored_records]
     gold_train = [_gold(record) for record in train_records]
+    for item in gold_scored:
+        item["split"] = scored_split
     for item in gold_train:
         item["split"] = "train"
-    logits_rows = [_load_map(logits_path)[_item_id(record["source_id"])] for record in val_records]
-    pointer_score = summarize(gold_val, pointer_val)
-    logits_score = summarize(gold_val, logits_rows)
-    paired = compare(gold_val, logits_rows, pointer_val)
+    pointer_score = summarize(gold_scored, pointer_scored)
+    if run_logits:
+        logits_rows = [_load_map(logits_path)[_item_id(record["source_id"])] for record in scored_records]
+        logits_score = summarize(gold_scored, logits_rows)
+        paired = compare(gold_scored, logits_rows, pointer_scored)
+    else:
+        logits_rows = []
+        logits_score = {"n_expected": 0, "n_responses": 0, "errors": {}, "by_source": {}}
+        paired = {"by_source": {}}
     train_metrics = continuous([(item, response["prediction"]) for item, response in zip(gold_train, pointer_train, strict=True)])
 
     pointer_path = run_dir / f"{release}-pointer.jsonl"
-    write_jsonl(pointer_path, pointer_val)
-    write_jsonl(logits_path, logits_rows)
+    write_jsonl(pointer_path, pointer_scored)
+    if run_logits:
+        write_jsonl(logits_path, logits_rows)
     pointer_score_path = run_dir / f"{release}-pointer.score.json"
     logits_score_path = run_dir / f"{release}-logits.score.json"
     compare_path = run_dir / f"{release}.compare.json"
@@ -398,6 +463,10 @@ def main() -> None:
         "max_pixels": used_pixels,
         "n_train": len(train_records),
         "n_validation": len(val_records),
+        "n_test": len(test_records),
+        "scored_split": scored_split,
+        "run_logits": run_logits,
+        "inference_resources": inference_resources,
         "head_lr": float(config["head_lr"]),
         "projection_dim": int(config["projection_dim"]),
         "epochs": int(config["epochs"]),
