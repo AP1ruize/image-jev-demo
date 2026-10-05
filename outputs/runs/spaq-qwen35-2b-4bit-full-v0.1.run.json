@@ -1,0 +1,37 @@
+{
+  "release_id": "spaq-qwen35-2b-4bit-full-v0.1",
+  "display_name": "Qwen3.5-2B 4-bit QLoRA, full SPAQ train/test",
+  "model_id": "qwen3.5-2b-4bit-qlora-full",
+  "family": "qwen35",
+  "quantization": "nf4",
+  "base_model": "Qwen/Qwen3.5-2B",
+  "epochs": 1,
+  "lora_r": 8,
+  "max_pixels": 65536,
+  "n_train": 7807,
+  "n_test": 1658,
+  "responses_path": "outputs\\runs\\spaq-qwen35-2b-4bit-full-v0.1.jsonl",
+  "score_path": "outputs\\runs\\spaq-qwen35-2b-4bit-full-v0.1.score.json",
+  "inference_resources": {
+    "resident_after_load": {
+      "cuda": true,
+      "gpu_name": "NVIDIA RTX A2000 Laptop GPU",
+      "gpu_allocated_mb": 1860.15,
+      "gpu_reserved_mb": 1934.0,
+      "gpu_max_allocated_mb": 1892.51,
+      "gpu_max_reserved_mb": 1934.0,
+      "process_rss_mb": 1081.8
+    },
+    "n": 1658,
+    "median_latency_ms": 1374.03,
+    "p95_latency_ms": 1765.89,
+    "mean_latency_ms": 1416.09,
+    "cuda": true,
+    "gpu_name": "NVIDIA RTX A2000 Laptop GPU",
+    "gpu_allocated_mb": 1868.28,
+    "gpu_reserved_mb": 1942.0,
+    "gpu_max_allocated_mb": 1908.85,
+    "gpu_max_reserved_mb": 1942.0,
+    "process_rss_mb": 520.53
+  }
+}
