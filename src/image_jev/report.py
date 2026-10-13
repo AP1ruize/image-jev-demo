@@ -258,6 +258,89 @@ def render_full_pair(pointer_meta: dict, pointer_score: dict, qwen_meta: dict, q
     return "\n".join(lines).rstrip() + "\n"
 
 
+def render_pointer_lora(
+    frozen_meta: dict,
+    frozen_score: dict,
+    qlora_meta: dict,
+    qlora_score: dict,
+    lora_meta: dict,
+    lora_score: dict,
+    versus_frozen: dict,
+    versus_qlora: dict,
+) -> str:
+    """Compare a language-LoRA pointer with the frozen pointer and JSON QLoRA on one SPAQ test split."""
+    frozen = (frozen_score.get("by_source") or {}).get("spaq") or {}
+    qlora = (qlora_score.get("by_source") or {}).get("spaq") or {}
+    lora = (lora_score.get("by_source") or {}).get("spaq") or {}
+    frozen_row = (versus_frozen.get("by_source") or {}).get("spaq") or {}
+    qlora_row = (versus_qlora.get("by_source") or {}).get("spaq") or {}
+    lines = [
+        f"# {lora_meta.get('release_id')} 对比报告",
+        "",
+        "用途：非商业内部模型实验。同一份 SPAQ Week 0 完整训练集和完整测试集。",
+        "这一版在冻结视觉编码器的 4-bit Qwen3.5-2B 上同时更新语言 LoRA 和指针头，推理仍是一次前向。",
+        "对照是只训指针头的 warmup，以及生成 JSON 的 4-bit QLoRA。",
+        "",
+        "## 模型与运行元数据",
+        "",
+        f"- 语言 LoRA + 指针头：`{lora_meta.get('model_id')}`，epoch {lora_meta.get('epochs')}，LoRA r={lora_meta.get('lora_r')}",
+        f"- 头初始化：`{lora_meta.get('head_init')}`",
+        f"- 冻结指针头：`{frozen_meta.get('model_id')}`，最佳 epoch {frozen_meta.get('best_epoch')}",
+        f"- JSON QLoRA：`{qlora_meta.get('model_id')}`，epoch {qlora_meta.get('epochs')}，LoRA r={qlora_meta.get('lora_r')}",
+        f"- 训练 / 测试张数：{lora_meta.get('n_train')} / {lora_meta.get('n_test')}",
+        f"- 像素上限：{lora_meta.get('max_pixels')}",
+        f"- 训练损失 起点 / 终点：{fmt_num(lora_meta.get('loss_start'))} / {fmt_num(lora_meta.get('loss_end'))}",
+        "",
+        "## 分来源原生指标",
+        "",
+        "只报告 SPAQ 0–100 MOS。主指标 95% 区间按 `group_id` 做 cluster bootstrap。",
+        "",
+        "### spaq / language LoRA + pointer",
+        "",
+        f"- n_total / n_valid / coverage：{lora.get('n_total')} / {lora.get('n_valid')} / {fmt_num(lora.get('coverage'))}",
+        f"- schema_valid：{fmt_num(lora.get('schema_valid'))}",
+        f"- Spearman ρ：{fmt_num(lora.get('spearman_rho'))}  CI95 {fmt_ci(lora.get('primary_metric_ci95_group_bootstrap'))}",
+        f"- Pearson r：{fmt_num(lora.get('pearson_r'))}",
+        f"- MAE：{fmt_num(lora.get('mae'))}",
+        f"- 中位延迟：{fmt_num(lora.get('median_latency_ms'), 2)} ms",
+        "",
+        "### spaq / frozen pointer",
+        "",
+        f"- Spearman ρ：{fmt_num(frozen.get('spearman_rho'))}  CI95 {fmt_ci(frozen.get('primary_metric_ci95_group_bootstrap'))}",
+        f"- Pearson r：{fmt_num(frozen.get('pearson_r'))}",
+        f"- MAE：{fmt_num(frozen.get('mae'))}",
+        f"- 中位延迟：{fmt_num(frozen.get('median_latency_ms'), 2)} ms",
+        "",
+        "### spaq / JSON QLoRA",
+        "",
+        f"- Spearman ρ：{fmt_num(qlora.get('spearman_rho'))}  CI95 {fmt_ci(qlora.get('primary_metric_ci95_group_bootstrap'))}",
+        f"- Pearson r：{fmt_num(qlora.get('pearson_r'))}",
+        f"- MAE：{fmt_num(qlora.get('mae'))}",
+        f"- 中位延迟：{fmt_num(qlora.get('median_latency_ms'), 2)} ms",
+        "",
+        "## 配对比较",
+        "",
+        "Delta 是（语言 LoRA + 指针头）减对照的 Spearman ρ。正值表示这一版排序更好。",
+        "",
+        f"- 相对冻结指针头：Δρ {fmt_num(frozen_row.get('delta_right_minus_left'))}  CI95 {fmt_ci(frozen_row.get('ci95'))}",
+        f"- 相对 JSON QLoRA：Δρ {fmt_num(qlora_row.get('delta_right_minus_left'))}  CI95 {fmt_ci(qlora_row.get('ci95'))}",
+        f"- paired valid：{frozen_row.get('n_paired_valid')} / {frozen_row.get('n_total')}",
+        "",
+        "## 推理时间与资源",
+        "",
+        f"- 语言 LoRA + 指针头中位 / p95 延迟：{fmt_num((lora_meta.get('inference_resources') or {}).get('median_latency_ms'), 2)} / {fmt_num((lora_meta.get('inference_resources') or {}).get('p95_latency_ms'), 2)} ms",
+        f"- 峰值 GPU allocated：{fmt_num((lora_meta.get('inference_resources') or {}).get('gpu_max_allocated_mb'), 2)} MB",
+        "",
+        "## 覆盖边界与局限",
+        "",
+        "- 只覆盖 SPAQ 总体感知质量。",
+        "- 视觉编码器保持冻结。语言 LoRA 与指针头一起用指针交叉熵训练一个 epoch，正式分数用最后一个 checkpoint。",
+        "- 内部实验用途不授权商业发布。",
+        "",
+    ]
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def _ratio(left, right) -> float | None:
     if not left or not right:
         return None

@@ -1,0 +1,41 @@
+{
+  "release_id": "spaq-pointer-lora-v0.1",
+  "display_name": "Qwen3.5-2B 4-bit language LoRA plus pointer head",
+  "model_id": "qwen3.5-2b-4bit-pointer-lora",
+  "family": "qwen35",
+  "quantization": "nf4",
+  "base_model": "Qwen/Qwen3.5-2B",
+  "epochs": 1,
+  "lora_r": 8,
+  "max_pixels": 65536,
+  "n_train": 7807,
+  "n_test": 1658,
+  "head_init": "outputs/warmup/spaq-pointer-full-v0.1/pointer-head.pt",
+  "loss_start": 1.301439642906189,
+  "loss_end": 1.523169,
+  "optimizer_step": 976,
+  "responses_path": "outputs\\runs\\spaq-pointer-lora-v0.1.jsonl",
+  "score_path": "outputs\\runs\\spaq-pointer-lora-v0.1.score.json",
+  "inference_resources": {
+    "resident_after_load": {
+      "cuda": true,
+      "gpu_name": "NVIDIA RTX A2000 Laptop GPU",
+      "gpu_allocated_mb": 2765.16,
+      "gpu_reserved_mb": 2982.0,
+      "gpu_max_allocated_mb": 4123.48,
+      "gpu_max_reserved_mb": 4948.0,
+      "process_rss_mb": 911.27
+    },
+    "n": 1658,
+    "median_latency_ms": 405.89,
+    "p95_latency_ms": 532.29,
+    "mean_latency_ms": 418.39,
+    "cuda": true,
+    "gpu_name": "NVIDIA RTX A2000 Laptop GPU",
+    "gpu_allocated_mb": 2765.26,
+    "gpu_reserved_mb": 2984.0,
+    "gpu_max_allocated_mb": 2901.59,
+    "gpu_max_reserved_mb": 2984.0,
+    "process_rss_mb": 819.32
+  }
+}

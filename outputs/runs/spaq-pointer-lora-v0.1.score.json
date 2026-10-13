@@ -1,0 +1,24 @@
+{
+  "n_expected": 1658,
+  "n_responses": 1658,
+  "errors": {},
+  "by_source": {
+    "spaq": {
+      "task_type": "continuous",
+      "n_total": 1658,
+      "n_valid": 1658,
+      "coverage": 1.0,
+      "schema_valid": 1.0,
+      "n_groups": 1658,
+      "median_latency_ms": 405.895,
+      "primary_metric_ci95_group_bootstrap": [
+        0.8858384075439248,
+        0.9045524450272132
+      ],
+      "spearman_rho": 0.8959037852864193,
+      "pearson_r": 0.9054408805181849,
+      "mae": 7.038224924605726
+    }
+  },
+  "interpretation": "Do not mix SPAQ and KonIQ MOS. Compare paired runs on identical items; report coverage and schema_valid beside Spearman/Pearson/MAE."
+}
