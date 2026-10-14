@@ -341,6 +341,147 @@ def render_pointer_lora(
     return "\n".join(lines).rstrip() + "\n"
 
 
+def _ci_entirely_below_zero(ci) -> bool:
+    return isinstance(ci, (list, tuple)) and len(ci) == 2 and ci[1] is not None and float(ci[1]) < 0
+
+
+def merger_decision(probe: dict | None, qlora_ci) -> str:
+    """Say whether a 4GB card should unfreeze the visual merger. Never starts that training."""
+    if not probe:
+        return "视觉 merger 探针还没有跑，所以不启动 merger 训练。"
+    if probe.get("oom"):
+        return "不建议解冻视觉 merger。4GB A2000 上 joint 前向加反向发生 OOM。没有启动 merger 训练。"
+    if not probe.get("grad_ok"):
+        return "不建议解冻视觉 merger。探针没有让 merger 拿到梯度，说明这次并没有真正反传到视觉 merger。"
+    if not probe.get("fits"):
+        return "不建议解冻视觉 merger。峰值显存离 4GB 总量不到 512MB，没有余量。没有启动 merger 训练。"
+    if _ci_entirely_below_zero(qlora_ci):
+        return (
+            "探针能稳定跑完，而且相对 JSON QLoRA 的 Spearman 差值置信区间整段低于零。"
+            "按约定只可以再考虑短程 merger 训练。本次不启动那个训练。"
+        )
+    return "探针能跑完，但相对 JSON QLoRA 的 Spearman 差值置信区间没有整段低于零。不建议解冻视觉 merger，也不启动 merger 训练。"
+
+
+def render_pointer_lora_valselect(
+    last_meta: dict,
+    last_score: dict,
+    qlora_meta: dict,
+    qlora_score: dict,
+    selected_meta: dict,
+    selected_score: dict,
+    versus_last: dict,
+    versus_qlora: dict,
+) -> str:
+    """Compare a validation-selected language-LoRA pointer with the last-step run and JSON QLoRA."""
+    last = (last_score.get("by_source") or {}).get("spaq") or {}
+    qlora = (qlora_score.get("by_source") or {}).get("spaq") or {}
+    chosen = (selected_score.get("by_source") or {}).get("spaq") or {}
+    last_row = (versus_last.get("by_source") or {}).get("spaq") or {}
+    qlora_row = (versus_qlora.get("by_source") or {}).get("spaq") or {}
+    resources = selected_meta.get("inference_resources") or {}
+    probe = selected_meta.get("merger_probe") or {}
+    monitor = selected_meta.get("val_monitor") or []
+    monitor_lines = [
+        f"  - step {item.get('step')}：训练损失 {fmt_num(item.get('train_loss'))}，验证交叉熵 {fmt_num(item.get('loss'))}"
+        for item in monitor
+    ]
+    lines = [
+        f"# {selected_meta.get('release_id')} 对比报告",
+        "",
+        "用途：非商业内部模型实验。同一份 SPAQ Week 0 完整训练集、验证集和测试集。",
+        "这一版在冻结视觉编码器的 4-bit Qwen3.5-2B 上同时更新语言 LoRA 和指针头，推理仍是一次前向。",
+        "正式权重按验证集指针交叉熵选取，不是最后一个 optimizer step。测试集不参与选模。",
+        "对照是同一配置的最后一步语言 LoRA + 指针头，以及生成 JSON 的 4-bit QLoRA。",
+        "",
+        "## 模型与运行元数据",
+        "",
+        f"- 验证集选出的语言 LoRA + 指针头：`{selected_meta.get('model_id')}`，epoch {selected_meta.get('epochs')}，LoRA r={selected_meta.get('lora_r')}",
+        f"- 头初始化：`{selected_meta.get('head_init')}`",
+        f"- 权重目录：`{selected_meta.get('checkpoint_dir')}`",
+        f"- 最后一步对照：`{last_meta.get('model_id')}`，optimizer step {last_meta.get('optimizer_step')}",
+        f"- JSON QLoRA：`{qlora_meta.get('model_id')}`，epoch {qlora_meta.get('epochs')}，LoRA r={qlora_meta.get('lora_r')}",
+        f"- 训练 / 验证 / 测试张数：{selected_meta.get('n_train')} / {selected_meta.get('n_validation')} / {selected_meta.get('n_test')}",
+        f"- 像素上限：{selected_meta.get('max_pixels')}",
+        f"- 训练顺序种子：{selected_meta.get('seed')}。前 5 个训练下标：{selected_meta.get('order_head')}",
+        f"- 选模监控：每 {selected_meta.get('eval_steps')} 个 optimizer step 以及最后一步，在固定种子子集上算指针交叉熵",
+        f"- 监控子集：{selected_meta.get('monitor_size')} / {selected_meta.get('n_validation')}，种子 {selected_meta.get('monitor_seed')}",
+        f"- 选中 step：{selected_meta.get('selected_step')}",
+        f"- 监控验证交叉熵：{fmt_num(selected_meta.get('monitor_loss'))}",
+        f"- 全量验证交叉熵：{fmt_num(selected_meta.get('val_full_loss'))}（n={selected_meta.get('val_full_n')}）",
+        f"- 训练损失 起点 / 选中 step / 终点：{fmt_num(selected_meta.get('loss_start'))} / {fmt_num(selected_meta.get('train_loss_selected'))} / {fmt_num(selected_meta.get('loss_end'))}",
+        "",
+        "监控记录：",
+        *monitor_lines,
+        "",
+        "## 分来源原生指标",
+        "",
+        "只报告 SPAQ 0–100 MOS。主指标 95% 区间按 `group_id` 做 cluster bootstrap。",
+        "",
+        "### spaq / validation-selected language LoRA + pointer",
+        "",
+        f"- n_total / n_valid / coverage：{chosen.get('n_total')} / {chosen.get('n_valid')} / {fmt_num(chosen.get('coverage'))}",
+        f"- schema_valid：{fmt_num(chosen.get('schema_valid'))}",
+        f"- Spearman ρ：{fmt_num(chosen.get('spearman_rho'))}  CI95 {fmt_ci(chosen.get('primary_metric_ci95_group_bootstrap'))}",
+        f"- Pearson r：{fmt_num(chosen.get('pearson_r'))}",
+        f"- MAE：{fmt_num(chosen.get('mae'))}",
+        f"- 中位延迟：{fmt_num(chosen.get('median_latency_ms'), 2)} ms",
+        "",
+        "### spaq / last-step language LoRA + pointer",
+        "",
+        f"- Spearman ρ：{fmt_num(last.get('spearman_rho'))}  CI95 {fmt_ci(last.get('primary_metric_ci95_group_bootstrap'))}",
+        f"- Pearson r：{fmt_num(last.get('pearson_r'))}",
+        f"- MAE：{fmt_num(last.get('mae'))}",
+        f"- 中位延迟：{fmt_num(last.get('median_latency_ms'), 2)} ms",
+        "",
+        "### spaq / JSON QLoRA",
+        "",
+        f"- Spearman ρ：{fmt_num(qlora.get('spearman_rho'))}  CI95 {fmt_ci(qlora.get('primary_metric_ci95_group_bootstrap'))}",
+        f"- Pearson r：{fmt_num(qlora.get('pearson_r'))}",
+        f"- MAE：{fmt_num(qlora.get('mae'))}",
+        f"- 中位延迟：{fmt_num(qlora.get('median_latency_ms'), 2)} ms",
+        "",
+        "## 配对比较",
+        "",
+        "Delta 是（验证集选出的语言 LoRA + 指针头）减对照的 Spearman ρ。正值表示这一版排序更好。",
+        "",
+        f"- 相对最后一步语言 LoRA + 指针头：Δρ {fmt_num(last_row.get('delta_right_minus_left'))}  CI95 {fmt_ci(last_row.get('ci95'))}",
+        f"- 相对 JSON QLoRA：Δρ {fmt_num(qlora_row.get('delta_right_minus_left'))}  CI95 {fmt_ci(qlora_row.get('ci95'))}",
+        f"- paired valid：{qlora_row.get('n_paired_valid')} / {qlora_row.get('n_total')}",
+        "",
+        "## 推理时间与资源",
+        "",
+        f"- 验证集选出的模型中位 / p95 延迟：{fmt_num(resources.get('median_latency_ms'), 2)} / {fmt_num(resources.get('p95_latency_ms'), 2)} ms",
+        f"- 峰值 GPU allocated / reserved：{fmt_num(resources.get('gpu_max_allocated_mb'), 2)} / {fmt_num(resources.get('gpu_max_reserved_mb'), 2)} MB",
+        "",
+        "## 视觉 merger 探针",
+        "",
+        "探针在同一 4-bit NF4 加载、语言 LoRA 和 `use_reentrant=False` 梯度检查点下，只把视觉 merger 设为可训练，用一张图做一次前向和反向。",
+        "这次加载里 merger 的线性层本身是 NF4，不能直接打开梯度，所以探针只把这两层反量化成 fp16。其余模块不改精度。",
+        "视觉编码器的其余参数保持冻结。探针不更新正式权重。",
+        "",
+        f"- merger 模块：{probe.get('modules') or 'n/a'}",
+        f"- merger 参数量：{probe.get('n_parameters') if probe else 'n/a'}",
+        f"- merger 权重：{probe.get('merger_storage') or 'n/a'}",
+        f"- OOM：{probe.get('oom') if probe else 'n/a'}",
+        f"- 梯度已回传：{probe.get('grad_ok') if probe else 'n/a'}",
+        f"- 峰值 allocated / reserved：{fmt_num(probe.get('gpu_max_allocated_mb'), 2)} / {fmt_num(probe.get('gpu_max_reserved_mb'), 2)} MB",
+        f"- 显存总量：{fmt_num(probe.get('gpu_total_mb'), 2)} MB",
+        f"- nvidia-smi 已用 / 总量：{fmt_num(probe.get('nvidia_used_mb'), 2)} / {fmt_num(probe.get('nvidia_total_mb'), 2)} MB",
+        f"- 余量：{fmt_num(probe.get('headroom_mb'), 2)} MB（门槛 512 MB）",
+        f"- {merger_decision(probe, qlora_row.get('ci95'))}",
+        "",
+        "## 覆盖边界与局限",
+        "",
+        "- 只覆盖 SPAQ 总体感知质量。",
+        "- 视觉编码器在这次训练里保持冻结。语言 LoRA 与指针头一起用指针交叉熵训练一个 epoch。",
+        "- 选模用固定种子的验证子集做监控，选中的 checkpoint 再在全部验证集上确认交叉熵。正式分数用这份权重，不用最后一步。",
+        "- 内部实验用途不授权商业发布。",
+        "",
+    ]
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def _ratio(left, right) -> float | None:
     if not left or not right:
         return None

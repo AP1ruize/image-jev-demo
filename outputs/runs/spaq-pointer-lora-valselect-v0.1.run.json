@@ -1,0 +1,160 @@
+{
+  "release_id": "spaq-pointer-lora-valselect-v0.1",
+  "display_name": "Qwen3.5-2B 4-bit language LoRA plus pointer head, validation-selected",
+  "model_id": "qwen3.5-2b-4bit-pointer-lora-valselect",
+  "family": "qwen35",
+  "quantization": "nf4",
+  "base_model": "Qwen/Qwen3.5-2B",
+  "epochs": 1,
+  "lora_r": 8,
+  "max_pixels": 65536,
+  "seed": 42,
+  "n_train": 7807,
+  "n_validation": 1660,
+  "n_test": 1658,
+  "head_init": "outputs/warmup/spaq-pointer-full-v0.1/pointer-head.pt",
+  "checkpoint_dir": "outputs/qlora/spaq-pointer-lora-v0.1-valselect/best",
+  "order_head": "2161,6276,61,5616,680",
+  "eval_steps": 100,
+  "monitor_size": 256,
+  "monitor_seed": 42,
+  "selected_step": 900,
+  "monitor_loss": 1.361076,
+  "train_loss_selected": 1.935742,
+  "val_full_loss": 1.344223,
+  "val_full_n": 1660,
+  "val_monitor": [
+    {
+      "step": 100,
+      "loss": 1.602795,
+      "train_loss": 1.929392,
+      "n": 256,
+      "seen": 800,
+      "seconds": 387.3
+    },
+    {
+      "step": 200,
+      "loss": 1.450768,
+      "train_loss": 1.594058,
+      "n": 256,
+      "seen": 1600,
+      "seconds": 570.1
+    },
+    {
+      "step": 300,
+      "loss": 1.597576,
+      "train_loss": 1.953051,
+      "n": 256,
+      "seen": 2400,
+      "seconds": 498.3
+    },
+    {
+      "step": 400,
+      "loss": 1.643114,
+      "train_loss": 1.188026,
+      "n": 256,
+      "seen": 3200,
+      "seconds": 584.7
+    },
+    {
+      "step": 500,
+      "loss": 1.449824,
+      "train_loss": 1.06735,
+      "n": 256,
+      "seen": 4000,
+      "seconds": 558.5
+    },
+    {
+      "step": 600,
+      "loss": 1.407888,
+      "train_loss": 1.408903,
+      "n": 256,
+      "seen": 4800,
+      "seconds": 518.1
+    },
+    {
+      "step": 700,
+      "loss": 1.382112,
+      "train_loss": 1.305955,
+      "n": 256,
+      "seen": 5600,
+      "seconds": 454.1
+    },
+    {
+      "step": 800,
+      "loss": 1.384301,
+      "train_loss": 1.189297,
+      "n": 256,
+      "seen": 6400,
+      "seconds": 272.1
+    },
+    {
+      "step": 900,
+      "loss": 1.361076,
+      "train_loss": 1.935742,
+      "n": 256,
+      "seen": 7200,
+      "seconds": 144.4
+    },
+    {
+      "step": 976,
+      "loss": 1.417583,
+      "train_loss": 1.473513,
+      "n": 256,
+      "seen": 7807,
+      "seconds": 101.8
+    }
+  ],
+  "loss_start": 1.301439642906189,
+  "loss_end": 1.473513,
+  "optimizer_step": 976,
+  "responses_path": "outputs/runs/spaq-pointer-lora-valselect-v0.1.jsonl",
+  "score_path": "outputs/runs/spaq-pointer-lora-valselect-v0.1.score.json",
+  "inference_resources": {
+    "resident_after_load": {
+      "cuda": true,
+      "gpu_name": "NVIDIA RTX A2000 Laptop GPU",
+      "gpu_allocated_mb": 1864.15,
+      "gpu_reserved_mb": 1934.0,
+      "gpu_max_allocated_mb": 1892.51,
+      "gpu_max_reserved_mb": 1934.0,
+      "process_rss_mb": 1093.5
+    },
+    "n": 1658,
+    "median_latency_ms": 410.33,
+    "p95_latency_ms": 590.1,
+    "mean_latency_ms": 430.36,
+    "cuda": true,
+    "gpu_name": "NVIDIA RTX A2000 Laptop GPU",
+    "gpu_allocated_mb": 1872.38,
+    "gpu_reserved_mb": 2290.0,
+    "gpu_max_allocated_mb": 2008.4,
+    "gpu_max_reserved_mb": 2290.0,
+    "process_rss_mb": 2064.36
+  },
+  "merger_probe": {
+    "kind": "visual-merger-one-image",
+    "images": 1,
+    "source_id": "07277.jpg",
+    "gradient_checkpointing": true,
+    "use_reentrant": false,
+    "quantization": "nf4",
+    "oom": false,
+    "grad_ok": true,
+    "fits": false,
+    "headroom_threshold_mb": 512.0,
+    "modules": [
+      "base_model.model.model.visual.merger"
+    ],
+    "n_parameters": 25174016,
+    "merger_storage": "nf4-dequantized-to-fp16",
+    "loss": 1.308786,
+    "gpu_max_allocated_mb": 4045.8,
+    "gpu_max_reserved_mb": 4878.0,
+    "gpu_name": "NVIDIA RTX A2000 Laptop GPU",
+    "gpu_total_mb": 4095.56,
+    "nvidia_used_mb": 3907.0,
+    "nvidia_total_mb": 4096.0,
+    "headroom_mb": -782.44
+  }
+}

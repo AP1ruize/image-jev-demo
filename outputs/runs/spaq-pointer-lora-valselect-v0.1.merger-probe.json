@@ -1,0 +1,25 @@
+{
+  "kind": "visual-merger-one-image",
+  "images": 1,
+  "source_id": "07277.jpg",
+  "gradient_checkpointing": true,
+  "use_reentrant": false,
+  "quantization": "nf4",
+  "oom": false,
+  "grad_ok": true,
+  "fits": false,
+  "headroom_threshold_mb": 512.0,
+  "modules": [
+    "base_model.model.model.visual.merger"
+  ],
+  "n_parameters": 25174016,
+  "merger_storage": "nf4-dequantized-to-fp16",
+  "loss": 1.308786,
+  "gpu_max_allocated_mb": 4045.8,
+  "gpu_max_reserved_mb": 4878.0,
+  "gpu_name": "NVIDIA RTX A2000 Laptop GPU",
+  "gpu_total_mb": 4095.56,
+  "nvidia_used_mb": 3907.0,
+  "nvidia_total_mb": 4096.0,
+  "headroom_mb": -782.44
+}

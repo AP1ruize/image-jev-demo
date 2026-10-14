@@ -1,0 +1,46 @@
+{
+  "versus_last_step": {
+    "n_expected": 1658,
+    "by_source": {
+      "spaq": {
+        "primary_metric": "spearman_rho",
+        "n_total": 1658,
+        "n_paired_valid": 1658,
+        "left_schema_valid": 1.0,
+        "right_schema_valid": 1.0,
+        "left_median_latency_ms": 405.895,
+        "right_median_latency_ms": 410.335,
+        "latency_ratio_right_over_left": 1.0109387895884403,
+        "left_spearman_rho": 0.8959037852864193,
+        "right_spearman_rho": 0.894905174848603,
+        "delta_right_minus_left": -0.0009986104378163496,
+        "ci95": [
+          -0.0029165880676170763,
+          0.0008872485746427294
+        ]
+      }
+    }
+  },
+  "versus_qlora": {
+    "n_expected": 1658,
+    "by_source": {
+      "spaq": {
+        "primary_metric": "spearman_rho",
+        "n_total": 1658,
+        "n_paired_valid": 1658,
+        "left_schema_valid": 1.0,
+        "right_schema_valid": 1.0,
+        "left_median_latency_ms": 1374.03,
+        "right_median_latency_ms": 410.335,
+        "latency_ratio_right_over_left": 0.2986361287599252,
+        "left_spearman_rho": 0.9020609503914419,
+        "right_spearman_rho": 0.894905174848603,
+        "delta_right_minus_left": -0.00715577554283886,
+        "ci95": [
+          -0.010366771413003462,
+          -0.0038416947539013924
+        ]
+      }
+    }
+  }
+}
