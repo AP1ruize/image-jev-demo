@@ -3,10 +3,10 @@
   "cuda_visible_devices": null,
   "hf_hub_disable_xet": true,
   "sources": {
-    "spaq_root": "D:/image-jev-demo/datasets/spaq",
+    "spaq_root": "datasets/spaq",
     "spaq_manifest": null,
     "spaq_path_root": null,
-    "koniq_images_zip": "D:/image-jev-demo/datasets/koniq10k/raw/koniq10k_1024x768.zip",
-    "koniq_scores_zip": "D:/image-jev-demo/datasets/koniq10k/raw/koniq10k_scores_and_distributions.zip"
+    "koniq_images_zip": "datasets/koniq10k/raw/koniq10k_1024x768.zip",
+    "koniq_scores_zip": "datasets/koniq10k/raw/koniq10k_scores_and_distributions.zip"
   }
 }

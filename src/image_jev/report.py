@@ -82,14 +82,14 @@ def _resource_lines(resources: dict) -> list[str]:
 
 
 def render_heldout(score_pointer: dict, score_logits: dict, compare_result: dict, run_meta: dict) -> str:
-    """Chinese report laid out like AlphaHalfBench public-proxy score reports."""
+    """Chinese SPAQ report: Spearman, Pearson, MAE, coverage, and a grouped bootstrap CI."""
     pointer_row = (score_pointer.get("by_source") or {}).get("spaq") or {}
     logits_row = (score_logits.get("by_source") or {}).get("spaq") or {}
     paired = (compare_result.get("by_source") or {}).get("spaq") or {}
     lines = [
         f"# {run_meta.get('release_id')} 评测报告",
         "",
-        "用途：非商业内部模型实验。这是 SPAQ 手机照片感知质量代理，不是完整 AlphaHalf 产品 benchmark。",
+        "个人研究试验。评测的是 SPAQ 手机照片总体感知质量。",
         f"评分切分是 Week 0 的 {run_meta.get('scored_split') or 'validation'}。训练不用这个切分。",
         "",
         "## 模型与运行元数据",
@@ -175,10 +175,10 @@ def render_heldout(score_pointer: dict, score_logits: dict, compare_result: dict
         "",
         "## 覆盖边界与局限",
         "",
-        "- 只覆盖 SPAQ 总体感知质量 MOS，不覆盖 AlphaHalf 主题、主体、人物状态、Moment、情绪、故事或证据化点评。",
-        "- 骨干保持 4-bit 冻结。这一步没有做 Valen 的 joint / vision_top / RLCD。",
+        "- 只报告 SPAQ 总体感知质量 MOS。",
+        "- 骨干保持 4-bit 冻结。这一步没有解冻视觉层，也没有做强化学习。",
         f"- 正式分数来自 `{run_meta.get('scored_split') or 'validation'}`。validation 只用来给指针头选 epoch。",
-        "- 内部实验用途不授权商业发布；不要分发原图、标注或模型。",
+        "- 本仓库代码为 Apache-2.0。数据集的版权和授权属于原作者，本报告不授予数据权利。",
         "",
     ]
     return "\n".join(lines).rstrip() + "\n"
@@ -194,7 +194,7 @@ def render_full_pair(pointer_meta: dict, pointer_score: dict, qwen_meta: dict, q
     lines = [
         f"# {pointer_meta.get('release_id')} 与 {qwen_meta.get('release_id')} 对比报告",
         "",
-        "用途：非商业内部模型实验。同一份 SPAQ Week 0 完整训练集和完整测试集。",
+        "个人研究试验。同一份 SPAQ Week 0 完整训练集和完整测试集。",
         "指针头是 ImageJev 的决策读出。对照模型是原版 Qwen3.5-2B 的 4-bit QLoRA，生成 JSON 分数。",
         "validation 只用于给指针头选 epoch。正式分数、延迟和资源都来自 test。",
         "",
@@ -249,10 +249,10 @@ def render_full_pair(pointer_meta: dict, pointer_score: dict, qwen_meta: dict, q
         "",
         "## 覆盖边界与局限",
         "",
-        "- 只覆盖 SPAQ 总体感知质量，不覆盖 AlphaHalf 的主题、主体、情绪或叙事。",
+        "- 只报告 SPAQ 总体感知质量 MOS。",
         "- 指针头不更新骨干。QLoRA 用 rank 8 适配器更新语言模型，视觉编码器保持冻结。",
         "- 两者都是 4-bit NF4，像素上限相同。延迟是模型前向或生成时间，不含读图。",
-        "- 内部实验用途不授权商业发布。",
+        "- 本仓库代码为 Apache-2.0。数据集的版权和授权属于原作者，本报告不授予数据权利。",
         "",
     ]
     return "\n".join(lines).rstrip() + "\n"
@@ -277,7 +277,7 @@ def render_pointer_lora(
     lines = [
         f"# {lora_meta.get('release_id')} 对比报告",
         "",
-        "用途：非商业内部模型实验。同一份 SPAQ Week 0 完整训练集和完整测试集。",
+        "个人研究试验。同一份 SPAQ Week 0 完整训练集和完整测试集。",
         "这一版在冻结视觉编码器的 4-bit Qwen3.5-2B 上同时更新语言 LoRA 和指针头，推理仍是一次前向。",
         "对照是只训指针头的 warmup，以及生成 JSON 的 4-bit QLoRA。",
         "",
@@ -335,7 +335,7 @@ def render_pointer_lora(
         "",
         "- 只覆盖 SPAQ 总体感知质量。",
         "- 视觉编码器保持冻结。语言 LoRA 与指针头一起用指针交叉熵训练一个 epoch，正式分数用最后一个 checkpoint。",
-        "- 内部实验用途不授权商业发布。",
+        "- 本仓库代码为 Apache-2.0。数据集的版权和授权属于原作者，本报告不授予数据权利。",
         "",
     ]
     return "\n".join(lines).rstrip() + "\n"
@@ -389,7 +389,7 @@ def render_pointer_lora_valselect(
     lines = [
         f"# {selected_meta.get('release_id')} 对比报告",
         "",
-        "用途：非商业内部模型实验。同一份 SPAQ Week 0 完整训练集、验证集和测试集。",
+        "个人研究试验。同一份 SPAQ Week 0 完整训练集、验证集和测试集。",
         "这一版在冻结视觉编码器的 4-bit Qwen3.5-2B 上同时更新语言 LoRA 和指针头，推理仍是一次前向。",
         "正式权重按验证集指针交叉熵选取，不是最后一个 optimizer step。测试集不参与选模。",
         "对照是同一配置的最后一步语言 LoRA + 指针头，以及生成 JSON 的 4-bit QLoRA。",
@@ -476,7 +476,7 @@ def render_pointer_lora_valselect(
         "- 只覆盖 SPAQ 总体感知质量。",
         "- 视觉编码器在这次训练里保持冻结。语言 LoRA 与指针头一起用指针交叉熵训练一个 epoch。",
         "- 选模用固定种子的验证子集做监控，选中的 checkpoint 再在全部验证集上确认交叉熵。正式分数用这份权重，不用最后一步。",
-        "- 内部实验用途不授权商业发布。",
+        "- 本仓库代码为 Apache-2.0。数据集的版权和授权属于原作者，本报告不授予数据权利。",
         "",
     ]
     return "\n".join(lines).rstrip() + "\n"

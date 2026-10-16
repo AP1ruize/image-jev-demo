@@ -2,8 +2,8 @@
 """Fit a pointer head on SPAQ train photos and score the Week 0 validation split.
 
 The frozen test split is not read. Validation is paired against the Week 0
-logits readout on the same images. Reports follow the AlphaHalfBench
-per-source layout: Spearman, Pearson, MAE, coverage, and grouped bootstrap CI.
+logits readout on the same images. Reports give per-source Spearman, Pearson,
+MAE, coverage, and a grouped bootstrap CI.
 """
 from __future__ import annotations
 

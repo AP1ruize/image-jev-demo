@@ -180,7 +180,7 @@ def main() -> None:
     catalog.extend(spaq)
     inventory["sources"]["spaq"] = {
         "images": len(spaq),
-        "layout": "datasets/spaq/images is an NTFS junction to AlphaHalf SPAQ TestImage",
+        "layout": "datasets/spaq/images",
         "annotations": "datasets/spaq/annotations",
     }
 
@@ -201,7 +201,7 @@ def main() -> None:
         catalog.extend(uhd)
         inventory["sources"]["uhd-iqa"] = {"images": len(uhd)}
     else:
-        inventory["sources"]["uhd-iqa"] = {"status": "not_on_d_drive"}
+        inventory["sources"]["uhd-iqa"] = {"status": "not_present"}
 
     inventory["n"] = len(catalog)
     _json_dump(DS / "inventory.json", inventory)

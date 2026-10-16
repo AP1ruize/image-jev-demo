@@ -12,13 +12,15 @@ build/
 # Machine-local paths (dataset archives, GPU id). Never commit.
 configs/local.json
 
-# Dedicated local dataset tree (images, archives, catalogs). Keep README.
+# Dedicated local dataset tree (images, archives, catalogs). Keep the READMEs.
 datasets/**
 !datasets/README.md
+!datasets/README.zh-CN.md
 
 # Local datasets, derived assets, and indices. Keep README and placeholders.
 data/**
 !data/README.md
+!data/README.zh-CN.md
 !data/raw/
 !data/interim/
 !data/processed/
@@ -28,24 +30,21 @@ data/**
 !data/interim/.gitkeep
 !data/processed/.gitkeep
 !data/exports/.gitkeep
-!data/exports/**
 !data/manifests/.gitkeep
 
 # Local model checkouts and weights.
 models/**
 !models/.gitkeep
 
-# Training, eval, and other generated artifacts.
-# Reports and run records are committed. Feature caches and weights stay ignored.
+# Training, eval, and weights stay ignored.
+# outputs/runs/ is the committed score record.
+# outputs/reports/ is local agent handoff prose. Ignore the directory, not each file.
 outputs/**
 !outputs/.gitkeep
-!outputs/reports/
-!outputs/reports/**
 !outputs/runs/
 !outputs/runs/**
 !outputs/warmup/
 !outputs/warmup/*.json
-!outputs/warmup/*.md
 
 # Safety net for weights, embeddings, and search indices.
 *.safetensors

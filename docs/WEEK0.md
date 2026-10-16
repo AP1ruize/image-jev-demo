@@ -1,5 +1,7 @@
 # Week 0 — frozen inference, no new weights
 
+[中文](zh/WEEK0.md)
+
 Goal: measure whether **typed readout** (candidate logits, optional JSON grammar) is worth it for technical IQA on 2B VLMs **before** any fine-tune.
 
 ## Modes
@@ -16,11 +18,11 @@ Shared across modes: same frozen items, same images, greedy decoding, thinking d
 - `schema_valid` = 1.0 for `grammar` and `logits`.
 - Median latency: `logits` << `generate`. Grammar should sit in between (fewer illegal tokens, still a decode loop).
 
-If ρ is essentially unchanged, the API shape is a serving win, not an intelligence win. Training the distribution (later weeks) is a separate question.
+If ρ is essentially unchanged, the API shape is a serving win, not an intelligence win. The trained pointer is a separate experiment; numbers are in [RESULTS.md](RESULTS.md).
 
-## Parallel fields (optional)
+## Attributes
 
-SPAQ also has five attribute MOS columns. `--parallel-attributes` on `logits` prefills the image once, then scores MOS + attributes as isolated suffixes. That path is a latency demo; official Week 0 tables still use **overall MOS only** so they stay paired with `generate`.
+SPAQ also has five attribute MOS columns. Official Week 0 tables use **overall MOS only**, so they stay paired across readouts.
 
 ## Not in Week 0
 

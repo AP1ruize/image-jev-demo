@@ -1,26 +1,28 @@
 # datasets/
 
-Local **technical / perceptual IQA** sources for Image-JEV. Not committed.
+[中文](README.zh-CN.md)
 
-Layout per source: `raw/` (official archive), `images/`, `labels/` (or `annotations/`).
-**No train/validation/test split** is applied here. Official CID2013 image-set folders and UHD-IQA’s original training/validation/test directories are kept only as source provenance.
+Local technical / perceptual image-quality files for ImageJev. This README is the only file here that Git tracks.
 
-## Sources in this tree
+Keep each source in its official unpacked layout. Nothing under those folders is committed. ImageJev does not assign its own train/validation/test split in this tree. Official CID2013 image-set folders and UHD-IQA’s original training/validation/test directories are source provenance only.
 
-| id | role | how it got here |
-|---|---|---|
-| `spaq` | smartphone photo MOS + 5 attributes | Junction of images from `alpha-half-vlm-demo` (same NTFS volume, no extra 33 GiB). Annotation xlsx copied. |
-| `koniq10k` | in-the-wild MOS | ZIP hardlinked from `alpha-half-vlm-demo`; JPEGs extracted; score/indicator CSV extracted. |
-| `koniq++` | defect-type rates on KonIQ filenames | Copied from `F:\datasets\koniq++`. Join to KonIQ images on `filename`. |
-| `cid2013` | authentic camera/phone MOS | Downloaded from Zenodo and unpacked. |
-| `uhd-iqa` | 4K authentic MOS (CC0) | Copied last from `F:\datasets\uhd-iqa` **only if D: has enough free space**. |
+```text
+spaq/Annotations/MOS and Image attribute scores.xlsx
+spaq/SPAQ zip/SPAQ/TestImage/*.jpg
+koniq10k/koniq10k_1024x768.zip
+koniq10k/koniq10k_scores_and_distributions.zip
+cid2013/                     CID2013.7z unpacked, with the MOS workbook
+uhd-iqa/                     official training, validation, and test folders
+```
 
-Composition / aesthetics raw dumps in AlphaHalf (PICD, CADB, MSC, ArtiMuse) are **not** copied; they are not technical-quality gold.
+`scripts/build_source_catalog.py` also accepts `spaq/images` plus `spaq/annotations`, and KonIQ JPEGs already extracted beside the score CSV.
 
-## Inventory
+| id | role |
+| --- | --- |
+| `spaq` | smartphone photo MOS and five attributes |
+| `koniq10k` | in-the-wild MOS |
+| `koniq++` | defect-type rates joined to KonIQ filenames |
+| `cid2013` | camera and phone MOS |
+| `uhd-iqa` | 4K MOS |
 
-See `inventory.json` (counts, bytes, join stats) and `catalog.jsonl` (one row per labelled image, `split` omitted).
-
-## Disk note
-
-SPAQ images are a **directory junction**, KonIQ official ZIPs are **hardlinks**. Deleting the AlphaHalf originals while these links remain is unsafe for SPAQ (junction target). Hardlinked ZIPs stay valid until the last link is removed.
+Download locations and upstream terms: [docs/DATASETS.md](../docs/DATASETS.md). Copyright in these files stays with their authors.

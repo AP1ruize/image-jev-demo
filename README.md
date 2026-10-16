@@ -1,34 +1,31 @@
 # ImageJev
 
-Typed, schema-valid **technical image quality** decisions from small vision-language models.
+[中文](README.zh-CN.md)
 
-Week 0 does not train anything. It compares three frozen-model inference modes on the same IQA items:
+Typed technical image-quality scores from a small vision-language model, read out in one forward pass.
 
-| Mode | What the network does | JSON |
-| --- | --- | --- |
-| `generate` | Autoregressive tokens for `{"value": …}` | Parsed after the fact; can fail |
-| `grammar` | Same generation, but only number/`}` tokens are allowed after a `{"value":` prefix | Valid by construction |
-| `logits` | One prefill, softmax over score bins / option letters | Assembled in code; always valid |
+The useful result is a **language LoRA plus a pointer head** on frozen 4-bit `Qwen/Qwen3.5-2B`. On the SPAQ smartphone MOS test split it stays within 0.007 Spearman of the same model trained to generate a JSON score, at about one third of the latency. Details and confidence intervals are in [docs/RESULTS.md](docs/RESULTS.md).
 
-The hypothesis: on closed numeric scales, reading candidate logits should match JSON-generation rank correlation, raise schema coverage to 100%, and cut latency by skipping the decode loop. If scores are unchanged, a wrapper API alone is not an accuracy upgrade.
+## SPAQ test, 1,658 photos
 
-## What this is / is not
+Same Week 0 split, same 65,536 pixel cap, vision encoder frozen. Spearman ρ is the ranking metric. Latency is the median model call on an RTX A2000 Laptop (4 GB).
 
-- **Is:** an open research harness for photographic **technical quality** (sharpness, noise, exposure, smartphone MOS — not beauty, not composition taxonomy).
-- **Is not:** a text generator, a photo editor, or a reproduction of any closed commercial decision model. Independent interface experiment.
+| Readout | Spearman ρ | MAE | Median latency |
+| --- | ---: | ---: | ---: |
+| Pointer head only | 0.824 | 9.27 | 209 ms |
+| Language LoRA + pointer, last step | 0.896 | 7.04 | 406 ms |
+| Language LoRA + pointer, validation-selected step 900 | 0.895 | 7.27 | 410 ms |
+| 4-bit QLoRA, generated JSON | 0.902 | 6.78 | 1,374 ms |
 
-Base models for Week 0: `Qwen/Qwen3-VL-2B-Instruct` and `Qwen/Qwen3.5-2B`.
+The last-step pointer is 0.006 Spearman below JSON generation. That gap is small, and its 95% interval does not include zero. Picking the checkpoint with the best validation loss (step 900) did not beat the last step. Coverage is 1.0 for every row: the pointer always emits a legal distribution.
 
-## Benchmark
+## What this is
 
-Frozen sources, native metrics, no mixed-scale overall score:
+ImageJev scores **technical / perceptual quality** (sharpness, noise, exposure, overall MOS). It does not score beauty or composition, and it does not write a critique.
 
-| Source | Construct | Scale | Primary metric |
-| --- | --- | --- | --- |
-| [SPAQ](https://github.com/h4nwei/SPAQ) | Smartphone perceptual quality MOS | 0–100 | Spearman ρ, Pearson r, MAE, coverage, latency |
-| [KonIQ-10k](https://database.mmsp-kn.de/) | In-the-wild perceptual quality MOS | 1–5 | same |
+The network does not decode an answer. A frozen vision encoder and a 4-bit language model, with a small language LoRA, produce one hidden state. A pointer head scores that state against fixed bins (0, 10, …, 100 on SPAQ). The reported score is the expected bin. JSON, when present, is assembled in Python.
 
-Test images never become training examples. Group-level bootstrap 95% CIs are reported per source.
+Week 0, before any training, compared three frozen readouts on the same items: free JSON generation, a JSON-number grammar, and a logit readout. The trained pointer is the follow-up. See [docs/WEEK0.md](docs/WEEK0.md) and [docs/EVAL.md](docs/EVAL.md).
 
 ## Setup
 
@@ -39,13 +36,13 @@ pip install -r requirements.txt
 python -m unittest discover -s tests -v
 ```
 
-GPU eval extra (install a CUDA torch wheel first if needed):
+GPU training and evaluation need a CUDA torch wheel, then:
 
 ```powershell
 pip install -r requirements-eval.txt
 ```
 
-Copy `configs/local.example.json` to `configs/local.json` and point it at your SPAQ / KonIQ files.
+Point `configs/local.json` at your own SPAQ and KonIQ files (`configs/local.example.json` is the template). Dataset files are not in this repository. Their copyrights stay with the authors; see [docs/DATASETS.md](docs/DATASETS.md).
 
 ```powershell
 python scripts/build_source_catalog.py
@@ -53,30 +50,28 @@ python scripts/build_week0_release.py
 python scripts/eval_week0.py --config configs/models.qwen3vl2b.json --mode generate --dry-run
 ```
 
-Real run (writes JSONL + scores + markdown):
+SPAQ pointer training entry points, after a frozen release exists:
 
 ```powershell
-python scripts/eval_week0.py --config configs/models.qwen3vl2b.json --mode generate
-python scripts/eval_week0.py --config configs/models.qwen3vl2b.json --mode grammar
-python scripts/eval_week0.py --config configs/models.qwen3vl2b.json --mode logits
-python scripts/compare_week0.py `
-  --left outputs/runs/<generate>.jsonl `
-  --right outputs/runs/<logits>.jsonl `
-  --output outputs/reports/week0-qwen3vl2b-generate-vs-logits.json
+python scripts/train_warmup.py --config configs/warmup.spaq.json
+python scripts/run_spaq_heldout.py --config configs/warmup.spaq.heldout.json
+python scripts/train_spaq_pointer_lora.py --config configs/pointer-lora.spaq.qwen35-2b.json
 ```
 
-`--max-items N` is for smokes. `--resume` appends to an existing JSONL.
-
-## Repository
+## Layout
 
 ```text
-configs/     versioned Week 0 + model profiles
-docs/        datasets, eval protocol, Week 0 notes
-registry/    source facts and license status
-schemas/     JSON Schema for items and predictions
-scripts/     catalog, freeze, eval, score, compare
-src/image_jev/   stdlib scoring + optional HF inference
-tests/       no GPU required
+configs/          model profiles and the Week 0 split
+docs/             protocol, datasets, and the SPAQ result
+registry/         source links and upstream license notes
+schemas/          JSON Schema for items and predictions
+scripts/          catalog, freeze, train, eval, score
+src/image_jev/    scoring, frozen inference, pointer head
+tests/            no GPU required
 ```
 
-Code is Apache-2.0. Dataset files keep their own terms; see `docs/DATASETS.md`.
+## License
+
+Code in this repository is Apache-2.0. You may use the code commercially.
+
+Datasets keep their own copyrights and terms. This repository does not grant rights to those images or labels. The training and evaluation reported here are a personal research experiment on those datasets.

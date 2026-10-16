@@ -1,5 +1,7 @@
 # Evaluation protocol
 
+[中文](zh/EVAL.md)
+
 ## Units
 
 Each frozen item is one image and one overall MOS label. Models are called stateless: current image + current prompt only.

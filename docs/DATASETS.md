@@ -1,6 +1,10 @@
 # Datasets
 
-Prepared local tree: `datasets/` (gitignored except `datasets/README.md`). Inventory: `datasets/inventory.json`. Item list without train/test assignment: `datasets/catalog.jsonl`.
+[中文](zh/DATASETS.md)
+
+Git tracks this page, not the files. `datasets/` and `data/` (except the README files and empty placeholders) stay untracked: archives, images, workbooks, CSV labels, and training exports.
+
+The layouts below are the official unpacked trees. Put them on disk under those names, or under the local folders `scripts/build_source_catalog.py` already accepts. Do not commit either copy.
 
 Week 0 still scores **SPAQ + KonIQ-10k** overall MOS. CID2013, KonIQ++, and UHD-IQA are staged for later technical-quality work. They are not aesthetic or composition datasets.
 
@@ -54,22 +58,22 @@ Copy `configs/local.example.json` to `configs/local.json` (gitignored):
 ```json
 {
   "sources": {
-    "spaq_root": "D:/image-jev-demo/datasets/spaq",
-    "koniq_images_zip": "D:/image-jev-demo/datasets/koniq10k/raw/koniq10k_1024x768.zip",
-    "koniq_scores_zip": "D:/image-jev-demo/datasets/koniq10k/raw/koniq10k_scores_and_distributions.zip"
+    "spaq_root": "datasets/spaq",
+    "koniq_images_zip": "datasets/koniq10k/raw/koniq10k_1024x768.zip",
+    "koniq_scores_zip": "datasets/koniq10k/raw/koniq10k_scores_and_distributions.zip"
   }
 }
 ```
 
-Organized copies (and junctions/hardlinks) live under `datasets/spaq`, `datasets/koniq10k`, `datasets/cid2013`, and optionally `datasets/uhd-iqa`. KonIQ++ labels are `datasets/koniq10k/labels/koniq++database_distributions.csv`.
+Keep each source under `datasets/spaq`, `datasets/koniq10k`, `datasets/cid2013`, and optionally `datasets/uhd-iqa`. KonIQ++ labels are `datasets/koniq10k/labels/koniq++database_distributions.csv`.
 
 If you already have a SPAQ source JSONL:
 
 ```json
 {
   "sources": {
-    "spaq_manifest": "D:/path/to/spaq-source.jsonl",
-    "spaq_path_root": "D:/path/to/resolve/relative/image/paths",
+    "spaq_manifest": "path/to/spaq-source.jsonl",
+    "spaq_path_root": "path/to/resolve/relative/image/paths",
     "koniq_images_zip": "...",
     "koniq_scores_zip": "..."
   }
@@ -78,8 +82,8 @@ If you already have a SPAQ source JSONL:
 
 Relative image paths in that JSONL are resolved against `spaq_path_root` when set, otherwise against the JSONL's parent directory.
 
-## Rules
+## Rights
 
-- Code license ≠ data license.
-- Frozen test `item_id`s are never used for training.
-- Do not redistribute third-party images from this repository.
+Code in this repository is Apache-2.0. Dataset copyrights and terms stay with their authors; this repository does not grant them. Read each upstream notice before you download or train. SPAQ's package readme is one of those notices: it describes educational and research use, and says commercial use needs the authors' permission. KonIQ, CID2013, and UHD-IQA have their own terms.
+
+Frozen test `item_id`s are never used for training. Do not commit third-party images to this repository.
