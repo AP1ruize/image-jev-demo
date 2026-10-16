@@ -27,6 +27,8 @@ The network does not decode an answer. A frozen vision encoder and a 4-bit langu
 
 Week 0, before any training, compared three frozen readouts on the same items: free JSON generation, a JSON-number grammar, and a logit readout. The trained pointer is the follow-up. See [docs/WEEK0.md](docs/WEEK0.md) and [docs/EVAL.md](docs/EVAL.md).
 
+The next experiment trains six SPAQ scores together, and four KonIQ scores together, on both Qwen3.5-2B and Qwen3-VL-2B. It is specified in [docs/PLAN.md](docs/PLAN.md) and has not been run.
+
 ## Setup
 
 ```powershell
@@ -62,7 +64,7 @@ python scripts/train_spaq_pointer_lora.py --config configs/pointer-lora.spaq.qwe
 
 ```text
 configs/          model profiles and the Week 0 split
-docs/             protocol, datasets, and the SPAQ result
+docs/             protocol, datasets, SPAQ result, and the next plan
 registry/         source links and upstream license notes
 schemas/          JSON Schema for items and predictions
 scripts/          catalog, freeze, train, eval, score

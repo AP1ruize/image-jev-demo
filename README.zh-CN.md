@@ -27,6 +27,8 @@ ImageJev 评的是**技术 / 感知质量**（清晰度、噪声、曝光、总�
 
 训练之前的 Week 0 在同一批题上比较三种冻结读出：自由生成 JSON、JSON 数字语法约束、直接读 logits。训过的指针头是这件事的后续。见 [docs/zh/WEEK0.md](docs/zh/WEEK0.md) 和 [docs/zh/EVAL.md](docs/zh/EVAL.md)。
 
+下一步会在 Qwen3.5-2B 和 Qwen3-VL-2B 上，把 SPAQ 六项一起训，再把 KonIQ 四项一起训。范围写在 [docs/zh/PLAN.md](docs/zh/PLAN.md)，实验还没跑。
+
 ## 环境
 
 ```powershell
@@ -62,7 +64,7 @@ python scripts/train_spaq_pointer_lora.py --config configs/pointer-lora.spaq.qwe
 
 ```text
 configs/          模型配置和 Week 0 切分
-docs/             协议、数据集和 SPAQ 结果
+docs/             协议、数据集、SPAQ 结果和下一步计划
 registry/         来源链接和上游许可说明
 schemas/          题目和预测的 JSON Schema
 scripts/          建目录、冻结、训练、评测、打分

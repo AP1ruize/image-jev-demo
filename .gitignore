@@ -1,3 +1,6 @@
+# Editor rules stay on this machine.
+.cursor/
+
 .venv/
 __pycache__/
 *.py[cod]
@@ -35,6 +38,9 @@ data/**
 # Local model checkouts and weights.
 models/**
 !models/.gitkeep
+
+# Internal agent handoff. Ignore the directory, not each file inside it.
+docs/internal/
 
 # Training, eval, and weights stay ignored.
 # outputs/runs/ is the committed score record.
